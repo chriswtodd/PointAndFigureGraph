@@ -6,8 +6,13 @@ import * as d3 from "d3";
 import * as D3Graph from "./d3/graph";
 import * as D3GraphFigureAndPoint from "./d3/figureAndPoint";
 
-
+// Import our data, could be done better
 import data from './data/AMD.csv';
+
+// This is our main application page, it is bare bones and is just a skeleton
+// for our point and figure to draw on
+// We will add some limited filters at the top of the page to give some user
+// interaction
 
 function App() {
   let [stock, setStock] = useState("AMD");
@@ -42,7 +47,7 @@ function App() {
   return (
     <div className="App">
       <h3>Point and Figure Graph - AMD, Jun 2020 - Jun 2021 </h3>
-      {/* <label for="box_size_input"> Box Size: </label>
+      <label for="box_size_input"> Box Size: </label>
       <input type="number" 
         id="box_size" 
         onChange={(event) => setBoxSize(event.target.value)}
@@ -56,7 +61,7 @@ function App() {
       <select name="dropdown" value={stock} onChange={(event) => setStock(event.target.value)}>
         <option value="AAPL">AAPL</option>
         <option value="AMD" selected>AMD</option>
-      </select> */}
+      </select>
       <div id="graph">
 
       </div>

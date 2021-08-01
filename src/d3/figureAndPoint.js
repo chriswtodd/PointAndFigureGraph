@@ -50,9 +50,7 @@ export let figureAndPointMixin = {
         let symbolGeneratorDot = d3.symbol().type(d3.symbolCircle).size(150);
         let upPathData = symbolGeneratorDot();
         let downPathData = symbolGeneratorCross();
-
-        
-        let lastChanged = 0;
+        // Draw our graph
         this.g
             .selectAll('path')
             .data(this.data)
@@ -79,8 +77,6 @@ export let figureAndPointMixin = {
                     color = "rgba(16,254,84,0.8)"; 
                     translate = "translate( " + (d.clientX + 105) + "," + (d.clientY + 75) + ")"
                 }
-                console.log(d)
-                let message = "Current Price: $" + Math.round(i[1])
                 this.g
                     .append("rect")
                     .attr("id", "tt")
@@ -88,8 +84,6 @@ export let figureAndPointMixin = {
                     .attr("height", 150)
                     .attr("width", 150)
                     .style("fill", "#eee")
-                    // .attr("top", d.clientY)
-                    // .attr("left", d.clientX)
                 this.g
                     .append("text")
                     .attr("id", "tt-text")
@@ -149,116 +143,17 @@ export let figureAndPointMixin = {
                 }
             })
             .attr('stroke-width', (d, i) => {
-                if (i === 0) { lastChanged = 0; return }
-                if (d[1] - lastChanged <= -this.boxSize) { 
-                    lastChanged = d[1];
-                    return "2"; 
-                }
-                if (d[1] - lastChanged >= this.boxSize) { 
-                    lastChanged = d[1];
-                    return "rgba(16,254,84,0.8)"; 
+                if (i === 0) { return }
+                if (d[1] - this.data[i-1][1] < 0) { 
+                    return "2";
                 }
             });
     },
 
     /**
      * Update, called after enter to update the visualisation with new data
-     * e.g             
-     * let fetchURL = encodeURI(`http://127.0.0.1:5000/${granularity}/wellington/${d1}/${d2}`);
-     * let res = await fetch(fetchURL);
-     * const json = await res.json();
-     * dispatch(setStreamData(json));
-     * Graph.render();
      */
     render() {
-        let t = this;
-
-        //Set the y domain
-        let yMax = 1;
-        if (this.stackType != d3.stackOffsetExpand) {
-            yMax = d3.max(this.calcStackHeight(this.streamData, this.keys));
-        }
-        this.yScale.domain([0, yMax]);
-        this.focus.select(".y")
-            .call(d3.axisLeft(this.yScale))
-
-        //Reset stackedData
-        //this.streamData is updated externally,
-        //and we are using pure JS in this file,
-        //so we must recalculate instead of relying 
-        //on a cached version
-        this.stackedData = d3.stack()
-            .offset(this.stackType)
-            .keys(this.keys)
-            (this.streamData)
-
-        this.stackedData = this.stackedData.filter(d=> {
-            let r = true;
-            d.forEach(subArray => {
-                if (isNaN(subArray[0]) || isNaN(subArray[1])) {
-                    r = false;
-                }
-            })
-            return r;
-        })
-
-        this.area = d3.area()
-            .x(function (d, i) {
-                return t.xScale(new Date(d.data.date));
-            })
-            .y0(function (d) {
-                return t.yScale(d[0]);
-            })
-            .y1(function (d) {
-                return t.yScale(d[1]);
-            }).curve(d3.curveMonotoneX)
-
-        //Enter data
-        this.path = this.g
-            .selectAll(".mylayers")
-            .data(this.stackedData);
-
-        //Using same selection, update path
-        this.path
-            .join(
-                enter => enter
-                    .append("path")
-                    .attr("class", "mylayers")
-                    .attr("d", this.blankArea),
-                update => update,
-                exit => exit
-                    // .attr("d", this.blankArea)
-                    .remove()
-            )
-            .transition()
-            .duration(600)
-            .ease(d3.easeExpInOut)
-            .attr("delay", "1000")
-            .attr("d", this.area)
-            .style("fill", function (d) { return t.colorScheme[d.key] })
-            .attr("clip-path", "url(#zoom)");
+        // TO BE IMPLEMENTED
     },
-
-    renderTotal() {
-        // Add a text element to show sum of graph
-        this.sum = 0;
-        this.streamData.forEach((d) => {
-            for (let key of Object.keys(d)) {
-                this.sum = isNaN(d[key]) ? this.sum : this.sum + d[key];
-            }
-        })
-        this.sum = Math.round(this.sum * 100) / 100
-
-        this.focus.selectAll(".sum_text").remove();
-
-        this.focus
-            .append("text")
-            .attr("class", "sum_text")
-            .attr("transform", "translate(" + this.width / 2 + "," + (this.height - 5) + ")")
-            .style("font-size", "2.5em")
-            .style("font-weight", "bold")
-            .style("text-anchor", "middle")
-            .style("fill", "rgba(0,0,0,0.8)")
-            .text("Total: " + this.numberWithCommas(this.sum));
-    }
 }
